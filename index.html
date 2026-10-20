@@ -1,0 +1,164 @@
+<!doctype html><html lang='de'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>TaktikStudio Mobile v2.0</title><meta name="theme-color" content="#111111"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="TaktikStudio"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/icon-192.png"><style>
+:root{font-family:Inter,system-ui,sans-serif;color:#f4f4f4;background:#111}*{box-sizing:border-box}body{margin:0;display:grid;grid-template-columns:268px 1fr;height:100vh;overflow:hidden}.side{padding:12px;background:#181818;border-right:1px solid #333;overflow-y:auto;overflow-x:hidden;height:100vh}.side h1{font-size:20px;margin:0 0 3px}.muted{color:#aaa;font-size:12px}.cluster{margin:0;font-size:11px;font-weight:850;letter-spacing:.10em;text-transform:uppercase;color:#aaa}.clusterBox{margin:10px 0 6px;border:1px solid #2b2b2b;border-radius:10px;background:#161616;overflow:hidden}.clusterBox>summary{list-style:none;cursor:pointer;padding:9px 10px;display:flex;align-items:center;justify-content:space-between;user-select:none}.clusterBox>summary::-webkit-details-marker{display:none}.clusterBox>summary::after{content:'›';font-size:19px;color:#888;transform:rotate(0deg);transition:transform .15s ease}.clusterBox[open]>summary::after{transform:rotate(90deg)}.clusterBox[open]>summary{border-bottom:1px solid #2b2b2b}.clusterContent{padding:6px}.clusterContent>.group:last-child{margin-bottom:0}.group{margin:0 0 6px;background:#202020;border:1px solid #303030;border-radius:9px;overflow:hidden}.group summary{list-style:none;cursor:pointer;padding:9px 10px;font-size:12px;font-weight:750;color:#ddd;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;user-select:none}.group summary::-webkit-details-marker{display:none}.group summary::after{content:'›';font-size:18px;color:#888;transform:rotate(90deg);transition:transform .15s ease}.group:not([open]) summary::after{transform:rotate(0deg)}.group[open] summary{border-bottom:1px solid #303030}.group .groupBody{padding:9px 10px 10px}.group h3{display:none}.row{display:flex;gap:8px;flex-wrap:wrap}button,input,select{border:1px solid #444;background:#262626;color:white;border-radius:7px;padding:7px 8px;font-size:12px}button{cursor:pointer}button:hover{background:#333}.primary{background:#eee;color:#111}.danger{color:#ff9999}.mobileBar{display:none}.menuBackdrop{display:none}.stage{display:flex;align-items:center;justify-content:center;padding:16px;background:#0d0d0d;overflow:hidden;height:100vh;position:sticky;top:0}.wrap{position:relative;max-width:100%;max-height:96vh;box-shadow:0 12px 50px #0008;background:#080808}canvas{width:100%;height:100%;display:block;background:#0d0d0d}.scene{padding:7px 9px}.scene.active{outline:2px solid #fff}.wide{width:100%}.sliderRow{display:grid;grid-template-columns:1fr 52px;gap:8px;align-items:center}.sliderRow input[type=range]{width:100%;padding:0}.val{font-size:12px;color:#ddd;text-align:right}.subhead{font-size:11px;color:#ddd;margin:10px 0 4px;font-weight:700;padding-top:8px;border-top:1px solid #333}label{font-size:11px;color:#bbb;display:block;margin:5px 0 3px}
+@media(max-width:800px){body{display:block;height:100dvh;overflow:hidden}.mobileBar{display:flex;position:fixed;z-index:30;left:10px;right:10px;top:max(8px,env(safe-area-inset-top));height:44px;align-items:center;justify-content:space-between;pointer-events:none}.mobileBar button{pointer-events:auto;background:#181818dd;backdrop-filter:blur(8px);border:1px solid #444;min-width:44px;min-height:44px;font-size:20px}.mobileTitle{font-size:12px;background:#181818cc;border:1px solid #333;border-radius:9px;padding:7px 10px;pointer-events:none}.side{position:fixed;z-index:50;left:0;top:0;bottom:0;width:min(86vw,330px);height:100dvh;padding:calc(14px + env(safe-area-inset-top)) 10px calc(14px + env(safe-area-inset-bottom));transform:translateX(-105%);transition:transform .2s ease;box-shadow:12px 0 40px #000a}.side.open{transform:translateX(0)}.menuBackdrop{position:fixed;z-index:40;inset:0;background:#0008}.menuBackdrop.show{display:block}.stage{height:100dvh;padding:6px;position:relative}.wrap{max-width:100%;max-height:100dvh}.side h1{font-size:18px}button,input,select{padding:9px 8px;min-height:38px}.group summary,.clusterBox>summary{min-height:42px}.scene{min-height:38px}.sliderRow input[type=range]{min-height:32px}canvas{touch-action:none}}
+</style></head><body><div class='mobileBar'><button id='menuToggle' aria-label='Menü öffnen'>☰</button><span class='mobileTitle'>TaktikStudio</span></div><div id='menuBackdrop' class='menuBackdrop'></div><aside class='side' id='sideMenu'><h1>TaktikStudio</h1><div class='muted'>2D Fußball-Animationen · lokal im Browser</div>
+<div class='cluster'>Ablauf</div><div class='group'><h3>Szenen</h3><div id='scenes' class='row'></div><div class='row' style='margin-top:8px'><button id='add'>+ Szene</button><button id='dup'>Duplizieren</button><button id='del' class='danger'>Löschen</button></div><label>Dauer zur nächsten Szene (Sek.)</label><input id='duration' type='number' min='.2' step='.1' value='1.5' class='wide'></div>
+<div class='group'><h3>Animation</h3><div class='row'><button id='play' class='primary'>▶ Abspielen</button><button id='stop'>■ Stop</button></div></div>
+<div class='cluster'>Taktik</div><div class='group'><h3>Grundordnung & Positionen</h3>
+<label>Spielform</label><select id='gameMode' class='wide'><option value='11'>11 gegen 11</option><option value='9'>9 gegen 9 – Jugend</option></select>
+<label>Team</label><select id='formationTeam' class='wide'><option value='red'>Rot</option><option value='blue'>Blau</option></select>
+<label>Grundordnung</label><select id='formation' class='wide'></select>
+<button id='applyFormation' class='wide' style='margin-top:8px'>Grundordnung anwenden</button>
+<div class='subhead'>Mannschaft anpassen</div>
+<label>Breite</label><div class='sliderRow'><input id='teamWidth' type='range' min='0' max='100' value='50'><span id='teamWidthVal' class='val'>50</span></div>
+<label>Höhe · höher = weiter nach vorne</label><div class='sliderRow'><input id='teamHeight' type='range' min='0' max='100' value='50'><span id='teamHeightVal' class='val'>50</span></div>
+<label>Kompaktheit der Ketten</label><div class='sliderRow'><input id='teamCompact' type='range' min='0' max='100' value='50'><span id='teamCompactVal' class='val'>50</span></div>
+<div class='muted' style='margin-top:7px'>Breite und Höhe wirken nur auf Feldspieler. Kompaktheit verändert vor allem die Abstände zwischen Abwehr-, Mittelfeld- und Angriffskette. Der TW bleibt unverändert.</div>
+<div class='subhead'>Eigene Grundordnung</div>
+<input id='customFormationName' class='wide' placeholder='z. B. 4-3-3 hohes Pressing'>
+<div class='row' style='margin-top:8px'><button id='saveFormation'>Grundordnung speichern</button><button id='deleteFormation' class='danger'>Eigene löschen</button></div>
+<label>Ausgewählter Spieler: Position</label><select id='role' class='wide'><option value=''>– auswählen –</option><option>TW</option><option>IV</option><option>RV</option><option>LV</option><option>ZDM</option><option>ZM</option><option>ZOM</option><option>RM</option><option>LM</option><option>RF</option><option>LF</option><option>ST</option></select>
+<label>Ausgewählter Spieler: Name <span class='muted'>(optional)</span></label><input id='playerName' class='wide' maxlength='24' placeholder='z. B. Müller'>
+<div class='muted' style='margin-top:8px'>Spieler anklicken und Position sowie optional einen Namen vergeben. Spielernamen werden in allen Szenen für diesen Spieler übernommen.</div></div>
+<div class='cluster'>Darstellung</div><div class='group'><h3>Format</h3><label>Ausgabeformat</label><select id='format' class='wide'>
+<option value='16:9'>16:9 – WhatsApp / YouTube</option><option value='9:16'>9:16 – Reels / Stories</option><option value='4:3'>4:3 – kompakt</option><option value='1:1'>1:1 – quadratisch</option><option value='pitch'>Spielfeld pur – Hochformat 65:100</option></select>
+<div class='muted' style='margin-top:8px'>Das Spielfeld dreht sich automatisch: Querformat = Spielrichtung links/rechts, Hochformat = unten/oben. Spielerpositionen und Szenen bleiben erhalten.</div></div>
+<div class='group'><h3>Elemente</h3><div class='row'><button id='ball'>Ball wählen</button><button id='reset'>Formation zurücksetzen</button></div><div class='muted' style='margin-top:8px'>Spieler oder Ball direkt auf dem Feld ziehen.</div></div>
+<div class='cluster'>Datei & Export</div><div class='group'><h3>Projekt</h3><div class='row'><button id='save'>Projekt speichern</button><label style='margin:0'><input id='load' type='file' accept='.json' hidden><span style='display:inline-block;border:1px solid #444;background:#262626;border-radius:8px;padding:9px 10px;cursor:pointer'>Projekt laden</span></label></div></div>
+<div class='group'><h3>Video</h3><button id='record' class='wide'>● WebM aufnehmen</button><div class='muted' style='margin-top:8px'>Spielt alle Szenen ab und speichert die Animation. WebM lässt sich z. B. in CapCut importieren.</div></div></aside>
+<main class='stage'><div class='wrap'><canvas id='c' width='845' height='1300'></canvas></div></main>
+<script>
+// Kompakte Akkordeon-Navigation: Jeder Funktionsblock ist einzeln ein-/ausklappbar.
+document.querySelectorAll('.side .group').forEach((old,i)=>{
+  const details=document.createElement('details'); details.className='group';
+  if(i===0||i===2) details.open=true;
+  const title=old.querySelector('h3')?.textContent||'Bereich';
+  const summary=document.createElement('summary'); summary.textContent=title;
+  const body=document.createElement('div'); body.className='groupBody';
+  [...old.childNodes].forEach(n=>{if(!(n.nodeType===1&&n.tagName==='H3')) body.appendChild(n)});
+  details.append(summary,body); old.replaceWith(details);
+});
+// Auch die Hauptbereiche (Ablauf, Taktik, Darstellung, Datei & Export) sind klappbar.
+[...document.querySelectorAll('.side .cluster')].forEach((heading,idx)=>{
+  const box=document.createElement('details'); box.className='clusterBox';
+  if(idx===0||idx===1) box.open=true;
+  const sum=document.createElement('summary');
+  const label=document.createElement('span'); label.className='cluster'; label.textContent=heading.textContent;
+  sum.appendChild(label);
+  const content=document.createElement('div'); content.className='clusterContent';
+  let n=heading.nextElementSibling;
+  while(n && !n.classList.contains('cluster')){ const next=n.nextElementSibling; content.appendChild(n); n=next; }
+  box.append(sum,content); heading.replaceWith(box);
+});
+
+const sideMenu=document.querySelector('#sideMenu'),menuBackdrop=document.querySelector('#menuBackdrop'),menuToggle=document.querySelector('#menuToggle');
+function setMenu(open){sideMenu.classList.toggle('open',open);menuBackdrop.classList.toggle('show',open);menuToggle.textContent=open?'×':'☰';menuToggle.setAttribute('aria-label',open?'Menü schließen':'Menü öffnen')}
+menuToggle.onclick=()=>setMenu(!sideMenu.classList.contains('open'));menuBackdrop.onclick=()=>setMenu(false);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});
+if('serviceWorker' in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
+const c=document.querySelector('#c'),x=c.getContext('2d'); let W=c.width,H=c.height;
+const FORMATS={'16:9':[1280,720],'9:16':[720,1280],'4:3':[960,720],'1:1':[900,900],'pitch':[845,1300]};
+let currentFormat='pitch', gameMode='11', pitch={}, landscape=true, selected=null,drag=false,playing=false,raf=null,sceneIndex=0;
+function activeCount(){return gameMode==='9'?9:11}
+function setPitchGeometry(){W=c.width;H=c.height;landscape=W>=H;let margin=Math.max(18,Math.min(W,H)*.035),availW=W-2*margin,availH=H-2*margin,ratio=100/65,pw,ph;if(landscape){pw=Math.min(availW,availH*ratio);ph=pw/ratio}else{ph=Math.min(availH,availW*ratio);pw=ph/ratio}pitch={l:(W-pw)/2,t:(H-ph)/2,r:(W+pw)/2,b:(H+ph)/2};let wrap=document.querySelector('.wrap'),stage=document.querySelector('.stage'),maxW=stage.clientWidth-32,maxH=window.innerHeight*.94,scale=Math.min(maxW/W,maxH/H);wrap.style.width=(W*scale)+'px';wrap.style.height=(H*scale)+'px'}
+function toXY(widthPct,depthPct,team){let pw=pitch.r-pitch.l,ph=pitch.b-pitch.t;if(landscape){let attackDepth=team==='red'?depthPct:100-depthPct;return {x:pitch.l+pw*attackDepth/100,y:pitch.t+ph*widthPct/100}}else{return {x:pitch.l+pw*widthPct/100,y:team==='red'?pitch.b-ph*depthPct/100:pitch.t+ph*depthPct/100}}}
+function fromXY(q,team){let pw=pitch.r-pitch.l,ph=pitch.b-pitch.t;if(landscape){let d=100*(q.x-pitch.l)/pw;return {w:100*(q.y-pitch.t)/ph,d:team==='red'?d:100-d}}return {w:100*(q.x-pitch.l)/pw,d:team==='red'?100*(pitch.b-q.y)/ph:100*(q.y-pitch.t)/ph}}
+const defaultFormation=[['TW',50,94],['LV',14,76],['IV',38,80],['IV',62,80],['RV',86,76],['ZM',30,58],['ZDM',50,64],['ZM',70,58],['LF',16,34],['ST',50,25],['RF',84,34]];
+function mk(){let s={duration:1.5,red:[],blue:[],ball:null};['red','blue'].forEach(team=>defaultFormation.forEach((a,i)=>{let q=toXY(a[1],a[2],team);s[team].push({x:q.x,y:q.y,n:i+1,role:a[0],name:''})}));s.ball=toXY(50,48,'red');return s}
+setPitchGeometry();let scenes=[mk()];
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function draw(state=scenes[sceneIndex]){x.clearRect(0,0,W,H);x.fillStyle='#0d0d0d';x.fillRect(0,0,W,H);x.fillStyle='#158c49';x.fillRect(pitch.l,pitch.t,pitch.r-pitch.l,pitch.b-pitch.t);let pw=pitch.r-pitch.l,ph=pitch.b-pitch.t;x.fillStyle='#19944e';for(let i=0;i<10;i+=2){if(landscape)x.fillRect(pitch.l+i*pw/10,pitch.t,pw/10,ph);else x.fillRect(pitch.l,pitch.t+i*ph/10,pw,ph/10)}x.strokeStyle='#fff';x.lineWidth=Math.max(3,Math.min(W,H)/180);x.strokeRect(pitch.l,pitch.t,pw,ph);let pcx=(pitch.l+pitch.r)/2,pcy=(pitch.t+pitch.b)/2,scale=(landscape?pw/100:ph/100);x.beginPath();if(landscape){x.moveTo(pcx,pitch.t);x.lineTo(pcx,pitch.b)}else{x.moveTo(pitch.l,pcy);x.lineTo(pitch.r,pcy)}x.stroke();x.beginPath();x.arc(pcx,pcy,9.15*scale,0,Math.PI*2);x.stroke();x.beginPath();x.arc(pcx,pcy,3,0,Math.PI*2);x.fillStyle='#fff';x.fill();let paD=16.5*scale,gaD=5.5*scale,paW=40.32*scale,gaW=18.32*scale;if(landscape){x.strokeRect(pitch.l,pcy-paW/2,paD,paW);x.strokeRect(pitch.l,pcy-gaW/2,gaD,gaW);x.strokeRect(pitch.r-paD,pcy-paW/2,paD,paW);x.strokeRect(pitch.r-gaD,pcy-gaW/2,gaD,gaW)}else{x.strokeRect(pcx-paW/2,pitch.t,paW,paD);x.strokeRect(pcx-gaW/2,pitch.t,gaW,gaD);x.strokeRect(pcx-paW/2,pitch.b-paD,paW,paD);x.strokeRect(pcx-gaW/2,pitch.b-gaD,gaW,gaD)}state.blue.slice(0,activeCount()).forEach((p,i)=>dot(p,'#3478db','b'+i));state.red.slice(0,activeCount()).forEach((p,i)=>dot(p,'#df4141','r'+i));ball(state.ball)}
+function dot(p,color,id){x.beginPath();x.arc(p.x,p.y,23,0,Math.PI*2);x.fillStyle=color;x.fill();x.strokeStyle=selected===id?'#ffe66d':'#fff';x.lineWidth=selected===id?6:3;x.stroke();x.fillStyle='#fff';x.font='bold 20px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText(p.n,p.x,p.y+1);if(p.role){x.font='bold 15px system-ui';x.fillStyle='#fff';x.strokeStyle='#111';x.lineWidth=4;x.strokeText(p.role,p.x,p.y+39);x.fillText(p.role,p.x,p.y+39)}if(p.name){let ny=p.role?p.y+58:p.y+39;x.font='600 14px system-ui';x.fillStyle='#fff';x.strokeStyle='#111';x.lineWidth=4;x.strokeText(p.name,p.x,ny);x.fillText(p.name,p.x,ny)}}
+function ball(p){x.beginPath();x.arc(p.x,p.y,11,0,Math.PI*2);x.fillStyle='#fff';x.fill();x.strokeStyle=selected==='ball'?'#ffe66d':'#111';x.lineWidth=3;x.stroke()}
+function renderScenes(){let d=document.querySelector('#scenes');d.innerHTML='';scenes.forEach((s,i)=>{let b=document.createElement('button');b.textContent=i+1;b.className='scene'+(i===sceneIndex?' active':'');b.onclick=()=>{sceneIndex=i;document.querySelector('#duration').value=s.duration;syncRole();renderScenes();draw()};d.appendChild(b)});document.querySelector('#duration').value=scenes[sceneIndex].duration}
+function hit(mx,my){let s=scenes[sceneIndex],best=null,bd=30;[['red','r'],['blue','b']].forEach(([k,p])=>s[k].slice(0,activeCount()).forEach((q,i)=>{let d=Math.hypot(mx-q.x,my-q.y);if(d<bd){bd=d;best=p+i}}));if(Math.hypot(mx-s.ball.x,my-s.ball.y)<25)best='ball';return best}
+function pos(e){let r=c.getBoundingClientRect();return [(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height]}
+c.onpointerdown=e=>{let [a,b]=pos(e);selected=hit(a,b);drag=!!selected;syncRole();c.setPointerCapture(e.pointerId);draw()};c.onpointermove=e=>{if(!drag||!selected)return;let [a,b]=pos(e),s=scenes[sceneIndex];a=Math.max(pitch.l,Math.min(pitch.r,a));b=Math.max(pitch.t,Math.min(pitch.b,b));if(selected==='ball')Object.assign(s.ball,{x:a,y:b});else{let team=selected[0]==='r'?'red':'blue',i=+selected.slice(1);Object.assign(s[team][i],{x:a,y:b})}draw()};c.onpointerup=()=>drag=false;
+document.querySelector('#add').onclick=()=>{scenes.splice(sceneIndex+1,0,clone(scenes[sceneIndex]));sceneIndex++;renderScenes();draw()};document.querySelector('#dup').onclick=document.querySelector('#add').onclick;document.querySelector('#del').onclick=()=>{if(scenes.length>1){scenes.splice(sceneIndex,1);sceneIndex=Math.max(0,sceneIndex-1);renderScenes();draw()}};document.querySelector('#duration').onchange=e=>scenes[sceneIndex].duration=Math.max(.2,+e.target.value||1.5);document.querySelector('#ball').onclick=()=>{selected='ball';draw()};document.querySelector('#reset').onclick=()=>{let d=scenes[sceneIndex].duration;scenes[sceneIndex]=mk();scenes[sceneIndex].duration=d;draw()};
+
+const formations={
+'4-3-2-1':[['TW',50,94],['LV',14,76],['IV',38,80],['IV',62,80],['RV',86,76],['ZM',25,58],['ZDM',50,62],['ZM',75,58],['LF',32,39],['RF',68,39],['ST',50,22]],
+'4-4-2 klassisch':[['TW',50,94],['LV',14,76],['IV',38,80],['IV',62,80],['RV',86,76],['LM',14,55],['ZM',38,58],['ZM',62,58],['RM',86,55],['ST',38,28],['ST',62,28]],
+'4-4-2 Raute':[['TW',50,94],['LV',14,76],['IV',38,80],['IV',62,80],['RV',86,76],['ZDM',50,66],['ZM',30,54],['ZM',70,54],['ZOM',50,43],['ST',38,25],['ST',62,25]],
+'4-1-4-1':[['TW',50,94],['LV',14,77],['IV',38,81],['IV',62,81],['RV',86,77],['ZDM',50,65],['LM',14,49],['ZM',38,53],['ZM',62,53],['RM',86,49],['ST',50,25]],
+'3-5-2':[['TW',50,94],['IV',24,79],['IV',50,83],['IV',76,79],['LM',10,55],['ZM',34,59],['ZDM',50,65],['ZM',66,59],['RM',90,55],['ST',38,27],['ST',62,27]],
+'3-4-2-1':[['TW',50,94],['IV',24,79],['IV',50,83],['IV',76,79],['LM',10,57],['ZM',38,61],['ZM',62,61],['RM',90,57],['LF',32,40],['RF',68,40],['ST',50,23]],
+'4-3-3 ausgeglichen':[['TW',50,94],['LV',14,77],['IV',38,81],['IV',62,81],['RV',86,77],['ZM',30,58],['ZDM',50,64],['ZM',70,58],['LF',16,34],['ST',50,25],['RF',84,34]],
+'4-3-3 offensiv':[['TW',50,94],['LV',12,72],['IV',38,80],['IV',62,80],['RV',88,72],['ZM',28,54],['ZOM',50,48],['ZM',72,54],['LF',12,28],['ST',50,20],['RF',88,28]],
+'4-3-3 defensiv':[['TW',50,94],['LV',15,79],['IV',38,82],['IV',62,82],['RV',85,79],['ZDM',38,66],['ZDM',62,66],['ZM',50,55],['LF',18,38],['ST',50,29],['RF',82,38]],
+'4-2-3-1':[['TW',50,94],['LV',14,77],['IV',38,81],['IV',62,81],['RV',86,77],['ZDM',38,64],['ZDM',62,64],['LM',16,46],['ZOM',50,47],['RM',84,46],['ST',50,24]],
+'4-2-2-2':[['TW',50,94],['LV',14,77],['IV',38,81],['IV',62,81],['RV',86,77],['ZDM',38,64],['ZDM',62,64],['ZOM',28,46],['ZOM',72,46],['ST',38,25],['ST',62,25]],
+'5-3-2':[['TW',50,94],['LV',8,70],['IV',27,80],['IV',50,83],['IV',73,80],['RV',92,70],['ZM',27,56],['ZDM',50,62],['ZM',73,56],['ST',38,28],['ST',62,28]],
+'5-4-1':[['TW',50,94],['LV',8,72],['IV',27,81],['IV',50,84],['IV',73,81],['RV',92,72],['LM',13,52],['ZM',38,57],['ZM',62,57],['RM',87,52],['ST',50,27]]
+};
+const formations9={
+'3-3-2':[['TW',50,94],['IV',22,78],['IV',50,82],['IV',78,78],['LM',18,55],['ZM',50,59],['RM',82,55],['ST',36,28],['ST',64,28]],
+'3-2-3':[['TW',50,94],['IV',22,79],['IV',50,83],['IV',78,79],['ZM',36,59],['ZM',64,59],['LF',16,34],['ST',50,26],['RF',84,34]],
+'3-4-1':[['TW',50,94],['IV',22,79],['IV',50,83],['IV',78,79],['LM',14,55],['ZM',38,59],['ZM',62,59],['RM',86,55],['ST',50,27]],
+'2-3-3 offensiv':[['TW',50,94],['IV',35,80],['IV',65,80],['LM',18,57],['ZM',50,62],['RM',82,57],['LF',14,33],['ST',50,24],['RF',86,33]],
+'4-3-1 defensiv':[['TW',50,94],['LV',12,75],['IV',38,82],['IV',62,82],['RV',88,75],['LM',20,55],['ZM',50,61],['RM',80,55],['ST',50,27]]
+};
+const formationSelect=document.querySelector('#formation');
+let customFormations={};try{customFormations=JSON.parse(localStorage.getItem('taktikstudio_custom_formations')||'{}')}catch{}
+function formationFromTeam(team){let s=scenes[sceneIndex];return s[team].slice(0,activeCount()).map(q=>{let p=fromXY(q,team);return [q.role||'',p.w,p.d]})}
+function refreshFormationSelect(selectValue){formationSelect.innerHTML='';let base=gameMode==='9'?formations9:formations,g1=document.createElement('optgroup');g1.label=gameMode==='9'?'9 gegen 9 – Vorlagen':'11 gegen 11 – Vorlagen';Object.keys(base).forEach(k=>{let o=document.createElement('option');o.value='base:'+k;o.textContent=k;g1.appendChild(o)});formationSelect.appendChild(g1);let names=Object.keys(customFormations).filter(k=>{let f=customFormations[k];let arr=Array.isArray(f)?f:f?.players;let mode=Array.isArray(f)?(arr.length===9?'9':'11'):String(f?.mode||arr?.length||'11');return mode===gameMode});if(names.length){let g2=document.createElement('optgroup');g2.label='Eigene Grundordnungen';names.sort().forEach(k=>{let o=document.createElement('option');o.value='custom:'+k;o.textContent=k;g2.appendChild(o)});formationSelect.appendChild(g2)}if(selectValue&&[...formationSelect.options].some(o=>o.value===selectValue))formationSelect.value=selectValue}
+refreshFormationSelect();
+function selectedFormation(){let [kind,...rest]=formationSelect.value.split(':'),name=rest.join(':');if(kind==='custom'){let f=customFormations[name];return Array.isArray(f)?f:f?.players}return (gameMode==='9'?formations9:formations)[name]}
+function resetTuning(){['teamWidth','teamHeight','teamCompact'].forEach(id=>{document.querySelector('#'+id).value=50;document.querySelector('#'+id+'Val').textContent='50'});tuningBase=null}
+function syncRole(){let el=document.querySelector('#role'),nameEl=document.querySelector('#playerName');if(!selected||selected==='ball'){el.value='';el.disabled=true;nameEl.value='';nameEl.disabled=true;return}el.disabled=false;nameEl.disabled=false;let team=selected[0]==='r'?'red':'blue',i=+selected.slice(1),p=scenes[sceneIndex][team][i];el.value=p.role||'';nameEl.value=p.name||''}
+document.querySelector('#role').onchange=e=>{if(!selected||selected==='ball')return;let team=selected[0]==='r'?'red':'blue',i=+selected.slice(1);scenes[sceneIndex][team][i].role=e.target.value;draw()};
+document.querySelector('#playerName').oninput=e=>{if(!selected||selected==='ball')return;let team=selected[0]==='r'?'red':'blue',i=+selected.slice(1),name=e.target.value.slice(0,24);scenes.forEach(sc=>{if(sc[team]&&sc[team][i])sc[team][i].name=name});draw()};
+document.querySelector('#applyFormation').onclick=()=>{let team=document.querySelector('#formationTeam').value,f=selectedFormation(),s=scenes[sceneIndex];if(!f)return;f.slice(0,activeCount()).forEach((a,i)=>{let q=toXY(a[1],a[2],team);Object.assign(s[team][i],{role:a[0],x:q.x,y:q.y})});selected=null;resetTuning();syncRole();draw()};
+let tuningBase=null;
+function applyTuning(){
+ let team=document.querySelector('#formationTeam').value,s=scenes[sceneIndex];
+ if(!tuningBase)tuningBase=clone(s[team]);
+ let w=+document.querySelector('#teamWidth').value,
+     h=+document.querySelector('#teamHeight').value,
+     co=+document.querySelector('#teamCompact').value,
+     widthScale=.60+w/125,
+     // 0 = große Kettenabstände, 100 = enge Kettenabstände
+     chainScale=1.45-co*.009,
+     // Regler nach rechts = Mannschaft (ohne TW) höher / weiter nach vorne
+     shift=(50-h)*.22;
+ let nd=tuningBase.map(q=>fromXY(q,team));
+ let fieldIdx=nd.slice(0,activeCount()).map((p,i)=>({p,i})).filter(o=>(s[team][o.i].role||'')!=='TW');
+ if(!fieldIdx.length)return;
+ // Ketten anhand der Grundtiefe bilden. Spieler mit ähnlicher Tiefe gehören zur selben Linie.
+ let sorted=[...fieldIdx].sort((a,b)=>a.p.d-b.p.d), chains=[];
+ sorted.forEach(o=>{
+   let last=chains[chains.length-1];
+   if(!last || Math.abs(o.p.d-last.mean)>10){chains.push({items:[o],mean:o.p.d});}
+   else{last.items.push(o);last.mean=last.items.reduce((sum,z)=>sum+z.p.d,0)/last.items.length;}
+ });
+ let blockCenter=fieldIdx.reduce((sum,o)=>sum+o.p.d,0)/fieldIdx.length;
+ chains.forEach(ch=>{
+   let newChainCenter=blockCenter+(ch.mean-blockCenter)*chainScale+shift;
+   ch.items.forEach(o=>{
+     let p=o.p,i=o.i;
+     let nw=50+(p.w-50)*widthScale;
+     // Kleine Staffelungsunterschiede innerhalb einer Kette bleiben erhalten.
+     let dep=newChainCenter+(p.d-ch.mean)*.35;
+     nw=Math.max(3,Math.min(97,nw)); dep=Math.max(3,Math.min(97,dep));
+     let q=toXY(nw,dep,team); s[team][i].x=q.x; s[team][i].y=q.y;
+   });
+ });
+ // TW explizit auf seiner Basisposition halten.
+ let tw=tuningBase.findIndex((q,i)=>(s[team][i].role||'')==='TW');
+ if(tw>=0){s[team][tw].x=tuningBase[tw].x;s[team][tw].y=tuningBase[tw].y;}
+ draw();
+}
+['teamWidth','teamHeight','teamCompact'].forEach(id=>{let el=document.querySelector('#'+id);el.oninput=()=>{document.querySelector('#'+id+'Val').textContent=el.value;applyTuning()}});
+document.querySelector('#gameMode').value=gameMode;document.querySelector('#gameMode').onchange=e=>{gameMode=e.target.value;selected=null;resetTuning();refreshFormationSelect();syncRole();draw()};
+document.querySelector('#formationTeam').onchange=()=>resetTuning();
+document.querySelector('#saveFormation').onclick=()=>{let name=document.querySelector('#customFormationName').value.trim();if(!name){alert('Bitte einen Namen für die Grundordnung eingeben.');return}let team=document.querySelector('#formationTeam').value;customFormations[name]={mode:gameMode,players:formationFromTeam(team)};localStorage.setItem('taktikstudio_custom_formations',JSON.stringify(customFormations));refreshFormationSelect('custom:'+name);alert('Grundordnung „'+name+'“ wurde im Browser gespeichert.')};
+document.querySelector('#deleteFormation').onclick=()=>{if(!formationSelect.value.startsWith('custom:')){alert('Bitte zuerst eine eigene Grundordnung im Dropdown auswählen.');return}let name=formationSelect.value.slice(7);if(confirm('Eigene Grundordnung „'+name+'“ löschen?')){delete customFormations[name];localStorage.setItem('taktikstudio_custom_formations',JSON.stringify(customFormations));refreshFormationSelect()}};
+function changeFormat(fmt){let oldPitch={...pitch},oldLandscape=landscape,oldW=W,oldH=H;function oldFrom(q,team){let pw=oldPitch.r-oldPitch.l,ph=oldPitch.b-oldPitch.t;if(oldLandscape){let d=100*(q.x-oldPitch.l)/pw;return {w:100*(q.y-oldPitch.t)/ph,d:team==='red'?d:100-d}}return {w:100*(q.x-oldPitch.l)/pw,d:team==='red'?100*(oldPitch.b-q.y)/ph:100*(q.y-oldPitch.t)/ph}}let norms=scenes.map(s=>({red:s.red.map(q=>oldFrom(q,'red')),blue:s.blue.map(q=>oldFrom(q,'blue')),ball:oldFrom(s.ball,'red')}));currentFormat=fmt;let wh=FORMATS[fmt];c.width=wh[0];c.height=wh[1];setPitchGeometry();scenes.forEach((s,si)=>{['red','blue'].forEach(team=>s[team].forEach((q,i)=>{let n=norms[si][team][i],p=toXY(n.w,n.d,team);q.x=p.x;q.y=p.y}));let b=toXY(norms[si].ball.w,norms[si].ball.d,'red');s.ball.x=b.x;s.ball.y=b.y});tuningBase=null;draw()}
+document.querySelector('#format').value=currentFormat;document.querySelector('#format').onchange=e=>changeFormat(e.target.value);window.addEventListener('resize',()=>setPitchGeometry());
+function mix(a,b,t){let s=clone(a);['red','blue'].forEach(k=>s[k].forEach((p,i)=>{p.x=a[k][i].x+(b[k][i].x-a[k][i].x)*t;p.y=a[k][i].y+(b[k][i].y-a[k][i].y)*t}));s.ball.x=a.ball.x+(b.ball.x-a.ball.x)*t;s.ball.y=a.ball.y+(b.ball.y-a.ball.y)*t;return s}
+async function playAll(onEnd){playing=true;for(let i=0;i<scenes.length-1&&playing;i++){sceneIndex=i;renderScenes();let a=scenes[i],b=scenes[i+1],dur=a.duration*1000,start=performance.now();await new Promise(res=>{function f(now){if(!playing)return res();let t=Math.min(1,(now-start)/dur),q=t*t*(3-2*t);draw(mix(a,b,q));if(t<1)raf=requestAnimationFrame(f);else res()}raf=requestAnimationFrame(f)})}if(playing){sceneIndex=scenes.length-1;renderScenes();draw()}playing=false;if(onEnd)onEnd()}
+document.querySelector('#play').onclick=()=>{if(!playing)playAll()};document.querySelector('#stop').onclick=()=>{playing=false;cancelAnimationFrame(raf);draw()};
+document.querySelector('#save').onclick=()=>{let blob=new Blob([JSON.stringify({version:10,format:currentFormat,gameMode,scenes},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='taktikprojekt.json';a.click();URL.revokeObjectURL(a.href)};document.querySelector('#load').onchange=async e=>{try{let j=JSON.parse(await e.target.files[0].text());if(j.scenes?.length){if(j.format&&FORMATS[j.format]){currentFormat=j.format;document.querySelector('#format').value=currentFormat;let wh=FORMATS[currentFormat];c.width=wh[0];c.height=wh[1];setPitchGeometry()}gameMode=String(j.gameMode||'11');document.querySelector('#gameMode').value=gameMode;refreshFormationSelect();scenes=j.scenes;scenes.forEach(s=>['red','blue'].forEach(k=>s[k].forEach((p,i)=>{if(p.role===undefined)p.role=i===0?'TW':'';if(p.name===undefined)p.name='' })));sceneIndex=0;selected=null;syncRole();renderScenes();draw()}}catch{alert('Projektdatei konnte nicht geladen werden.')}};
+document.querySelector('#record').onclick=async()=>{if(!c.captureStream||!window.MediaRecorder){alert('Dieser Browser unterstützt die Videoaufnahme nicht.');return}let chunks=[],rec=new MediaRecorder(c.captureStream(30),{mimeType:MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm'});rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);rec.onstop=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob(chunks,{type:'video/webm'}));a.download='taktik-animation.webm';a.click()};sceneIndex=0;draw();rec.start();await new Promise(r=>setTimeout(r,250));await playAll();await new Promise(r=>setTimeout(r,500));rec.stop()};
+renderScenes();draw();
+</script></body></html>
